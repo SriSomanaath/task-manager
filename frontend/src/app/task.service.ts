@@ -21,6 +21,7 @@ export class TaskService {
   }
   createTask(title: string,listId:string){
       //we want to send a web request to create a task
+      console.log("vachindi",title)
       return this.webReqService.post(`lists/${listId}/tasks`, {title});
   }
 }

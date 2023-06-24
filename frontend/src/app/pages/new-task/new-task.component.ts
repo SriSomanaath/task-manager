@@ -1,5 +1,7 @@
 import { Component,OnInit } from '@angular/core';
 import { TaskService } from 'src/app/task.service';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {ActivatedRoute,Params,Router} from '@angular/router';
 import { Task } from 'src/app/models/task.model';
 
@@ -14,14 +16,22 @@ export class NewTaskComponent implements OnInit{
   listId:string;
   
   ngOnInit(){
-    // this.route.params.subscribe(
-    //         (params:Params)=>{
-    //        this.listId =  params['listId'];
-    //        console.log(this.listId);
-    //     }
-    //   ); 
+    this.route.params.subscribe(
+            (params:Params)=>{
+           this.listId =  params['listId'];
+           console.log(this.listId);
+        }
+      ); 
     }
-  createTask(title:string,listId:string){
-      this.taskService.createTask(title,listId);
+  createTask(title: string): Observable<Task> { 
+    return this.taskService.createTask(title, this.listId).pipe(
+      map((response: Object) => {
+        const newTask = response as Task;
+        console.log(newTask);
+        return newTask; // Return the newTask object
+        this.router.navigate(['../'], { relativeTo: this.route });
+      })
+    );
   }
+  
 }

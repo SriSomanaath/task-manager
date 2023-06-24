@@ -2,7 +2,13 @@ const express = require('express');
 const app = express();
 
 const { mongoose } = require('./db/mongoose');
+
 const bodyParser = require('body-parser');
+
+//loading the mongoose models
+const { List, Task} = require('./db/models');
+//load middleware
+app.use(bodyParser.json());
 
 // CORS HEADERS MIDDLEWARE
 app.use(function (req, res, next) {
@@ -17,29 +23,21 @@ app.use(function (req, res, next) {
 
     next();
 });
-//load middleware
-app.use(bodyParser.json());
 
-/* ROUTE HANDLERS*/
-const { List, Task} = require('./db/models');
-/* LIST ROUTES */
-/* GET /lists
-*purpose :GEt all lists
-*/
+//routes hadlers
+
 app.get('/lists',(req, res)=>{
-    //we want to return an array od all the lists in the database
-    List.find().then((lists)=>{
-        res.send(lists);
-    }).catch((e)=>{
-        res.send(e);
-    });
+// We want to return an array of all the lists that belong to the authenticated user
+List.find().then((lists)=>{
+    res.send(lists);
+}).catch((e)=>{
+    res.send(e);
+});
 })
-/* LIST ROUTES */
-/* POST  /lists
-*purpose :Create a list 
-*/
-app.post('/lists',(req, res)=>{
-    //we want to create a new list and return the new kits document back to the user (which includes the id)
+
+app.post('/lists',(req,res)=>{
+// We want to create a new list and return the new list document back to the user (which includes the id)
+// The list information (fields) will be passed in via the JSON request body   
     let title = req.body.title;
 
     let newList = new List({
@@ -49,27 +47,28 @@ app.post('/lists',(req, res)=>{
         // the full list document is returned (incl. id)
         res.send(listDoc);
     })
-})
-/*to update*/
-app.patch('/lists/:id',(req, res)=>{
-   //we ant to update the specified list
-   List.findOneAndUpdate({ _id: req.params.id},{
-    $set: req.body
+});
+  
+app.patch('/lists/:id',(req,res)=>{
+// We want to update the specified list (list document with id in the URL) with the new values specified in the JSON body of the request
+    List.findOneAndUpdate({ _id: req.params.id},{
+        $set: req.body
     }).then(()=>{
         res.sendStatus(200);
     });
+});
+
+
+app.delete('/lists/:id',(req,res)=>{
+// We want to delete the specified list (document with id in the URL)
+List.findOneAndRemove({
+    _id: req.params.id
+}).then((removedListDoc) => {
+    res.send(removedListDoc);
 })
-app.delete('/lists/:id',(req, res)=>{
-  // We want to delete the specified list (document with id in the URL)
-    List.findOneAndRemove({
-        _id: req.params.id
-    }).then((removedListDoc) => {
-        res.send(removedListDoc);
-    })
- })
+});
 
-
- app.get('/lists/:listId/tasks',(req,res)=>{
+app.get('/lists/:listId/tasks',(req,res)=>{
 
     Task.find({
         _listId: req.params.listId
@@ -77,6 +76,17 @@ app.delete('/lists/:id',(req, res)=>{
         res.send(tasks);
     })
 });
+
+
+app.get('/lists/:listId/tasks/:taskId',(req,res)=>{
+    Task.findOne({
+        _Id: req.params.taskId,
+        _listId:req.params.listId
+    }).then((task)=>{
+        res.send(task);
+    })
+});
+
 app.post('/lists/:listId/tasks',(req,res)=>{
 
     let newTask = new Task({
@@ -87,6 +97,7 @@ app.post('/lists/:listId/tasks',(req,res)=>{
         res.send(newTaskDoc);
     });
 });
+
 app.patch('/lists/:listId/tasks/:taskId',(req,res)=>{
 
     Task.findOneAndUpdate({
@@ -104,9 +115,11 @@ app.delete('/lists/:listId/tasks/:taskId',(req,res)=>{
         _id:req.params.taskId,
         _listId: req.params.listId
     }).then((removedTaskDoc)=>{
-        res.send(removedTaskDoc);
+        res.send(removeTaskDoc);
     })
 });
-app.listen(3000,()=>{
+
+
+app.listen(3000, () => {
     console.log("Server is listening on port 3000");
 })

@@ -1,4 +1,4 @@
-export interface List {
+export class List {
     _id: string;
     title: string;
 }

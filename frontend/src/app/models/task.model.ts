@@ -1,4 +1,4 @@
-export class Task{
+export class Task {
  _id:string;
  _listId:string;
  title:string;
