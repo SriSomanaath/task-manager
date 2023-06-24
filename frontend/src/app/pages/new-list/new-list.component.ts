@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskService } from 'src/app/task.service';
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { List } from 'src/app/models/list.model';
 
 @Component({
@@ -15,12 +17,23 @@ export class NewListComponent implements OnInit {
   ngOnInit() {
   }
 
-  createList(title: string) {
-    this.taskService.createList(title).subscribe((list: List) => {
-      console.log(list);
-      // Now we navigate to /lists/task._id
-      this.router.navigate([ '/lists', list._id ]); 
-    });
+  // createList(title: string) {
+  //   this.taskService.createList(title).subscribe((list: any) => {
+  //     console.log(list);
+  //     // Now we navigate to /lists/task._id
+  //     this.router.navigate(['/lists', list._id]);
+  //   });
+  // }
+   createList(title: string): Observable<List> { 
+    return this.taskService.createList(title).pipe(
+      map((response: Object) => {
+        const list = response as List;
+        console.log(list);
+        // Now we navigate to /lists/task._id
+        this.router.navigate(['/lists', list._id]);
+        return list;
+      })
+    );
   }
-
+  
 }
